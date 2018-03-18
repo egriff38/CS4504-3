@@ -19,15 +19,8 @@ public class SocketEvent extends java.net.Socket implements java.io.Serializable
         this.history.put(this.eventNo, this.vectorClock);
     }
 
-    public SocketEvent(SocketEvent e) { // Creating a new SocketEvent from the previous SocketEvent
-        eventNo = e.eventNo + 1;
-        text = changeText(e.text);
-        lamport = e.lamport + 1;
-        vectorClock = e.vectorClock;
-
-    }
-
-    public SocketEvent withNewText(String text, int lamport, Vector<Integer> vectorClock){
+    // Increments clocks and changes text
+    public SocketEvent update(String text, int lamport, Vector<Integer> vectorClock){
         return new SocketEvent((int)(Math.random()*100)
                 + this.eventNo + 1, text, lamport, vectorClock);
     }
