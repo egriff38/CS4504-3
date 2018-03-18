@@ -1,3 +1,6 @@
+import java.net.DatagramSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.Vector;
 
 public class Process {
@@ -5,8 +8,9 @@ public class Process {
     private Vector<Integer> vectorTime;
     private int scalarTime;
     private SocketEvent currentEvent;
+    private DatagramSocket socket;
 
-    public Process(int processNumber) {
+    public Process(int processNumber) throws SocketException {
         currentEvent = null;
         this.processNumber = processNumber;
         vectorTime = new Vector<>(3);
@@ -14,6 +18,7 @@ public class Process {
         vectorTime.set(1, 0);
         vectorTime.set(2,0);
         scalarTime = 0;
+        socket = new DatagramSocket();
     }
 
     public SocketEvent getCurrentEvent() {
@@ -41,13 +46,18 @@ public class Process {
     }
 
     public void updateVector(Vector<Integer> time) {
-        vectorTime.set(0, vectorTime.get(0) + time.get(0));
-        vectorTime.set(1, vectorTime.get(1) + time.get(1));
-        vectorTime.set(2, vectorTime.get(2) + time.get(2));
+        vectorTime.set(0, Math.max(vectorTime.get(0) , time.get(0)));
+        vectorTime.set(1, Math.max(vectorTime.get(1) , time.get(1)));
+        vectorTime.set(2, Math.max(vectorTime.get(2) , time.get(2)));
+        vectorTime.set(processNumber,vectorTime.get(processNumber)+1);
     }
 
 
     public SocketEvent action(SocketEvent event) {
         return event;
+    }
+
+    public static void main(String[] args) {
+
     }
 }
