@@ -70,15 +70,16 @@ public class Process {
     }
 
     public static void main(String[] args) {
-        if(args.length<2||args.length>3){
-            System.out.println("Process [IP]:[PORT] [?processNumber]");
+        if(args.length<3||args.length>4){
+            System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
         }
         int processNo = 0;
         String IP;
         int port;
-        if(args.length==3) processNo = Integer.parseInt(args[2]);
+        int srcPort = Integer.parseInt(args[1]);
+        if(args.length==4) processNo = Integer.parseInt(args[3]);
         try{
-            String[] host = args[1].split(":");
+            String[] host = args[2].split(":");
             if(host.length!=2)throw new Error("Bad host argument");
             else{
                 IP = host[0];
@@ -86,7 +87,7 @@ public class Process {
             }
             Process process = new Process(processNo,IP,port);
         }catch (Exception e){
-            System.out.println("Process [IP]:[PORT] [?processNumber]");
+            System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
         }
 
 
