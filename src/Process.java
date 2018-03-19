@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Vector;
 
 public class Process {
@@ -29,7 +30,7 @@ public class Process {
     public void setCurrentEvent(SocketEvent currentEvent) {
         this.currentEvent = currentEvent;
         updateVector(currentEvent.getVectorClock());
-        updateScalar(currentEvent.getScalarClock());
+        updateScalar(currentEvent.getLamport());
 
     }
 
@@ -106,6 +107,35 @@ public class Process {
         return event;
     }
 
+    public void printClock() {
+        for (Map.Entry<Integer, Vector<Integer>> entry : currentEvent.getHistory().entrySet()) {
+
+        }
+    }
+
+    public char timeRelationLamport(SocketEvent a, SocketEvent b){
+        if(a.getLamport() > b.getLamport()) {
+            return 'n';
+        } else if(a.getLamport() < b.getLamport()) {
+            return 'h';
+        } else {
+            return 'c';
+        }
+    }
+
+    public char timeRelationVector(SocketEvent a, SocketEvent b) {
+        Vector<Integer> aArr = a.getVectorClock();
+        Vector<Integer> bArr = b.getVectorClock();
+
+        if((aArr.get(0) > bArr.get(0)) && (aArr.get(1) > bArr.get(1)) && (aArr.get(2) > bArr.get(2))){
+            return 'n';
+        } else if((aArr.get(0) < bArr.get(0)) && (aArr.get(1) < bArr.get(1)) && (aArr.get(2) < bArr.get(2))){
+            return 'h';
+        } else {
+            return 'c';
+        }
+    }
+
     public static void main(String[] args) {
         if(args.length<3||args.length>4){
             System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
@@ -137,6 +167,4 @@ public class Process {
             e.printStackTrace();
         }
     }
-
-
 }

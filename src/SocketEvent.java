@@ -30,11 +30,16 @@ public class SocketEvent extends java.net.Socket implements java.io.Serializable
         return text;
     }
 
-    public Vector<Integer> getVectorClock(){
-        return this.vectorClock;
+    public int getLamport() {
+        return lamport;
     }
-    public int getScalarClock(){
-        return this.lamport;
+
+    public Vector<Integer> getVectorClock() {
+        return vectorClock;
+    }
+
+    public Map<Integer, Vector<Integer>> getHistory() {
+        return history;
     }
 
     public void setText(String text) {
