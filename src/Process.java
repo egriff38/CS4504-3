@@ -10,17 +10,17 @@ public class Process {
     private int scalarTime;
     private SocketEvent currentEvent;
     final private Socket socket;
-    final private ObjectInputStream instream;
-    final private ObjectOutputStream ostream;
+    private ObjectInputStream instream;
+    private ObjectOutputStream ostream;
 
     public Process(int processNumber, int portNo) throws IOException {
         currentEvent = null;
         this.processNumber = processNumber;
         vectorTime = new Vector<>(Arrays.asList(0,0,0));
         scalarTime = 0;
-        socket = new Socket("localhost", portNo);
-        instream = new ObjectInputStream(socket.getInputStream());
-        ostream = new ObjectOutputStream(socket.getOutputStream());
+        socket = new Socket();
+        socket.bind(new InetSocketAddress("127.0.0.1", portNo));
+
     }
 
     public SocketEvent getCurrentEvent() {
@@ -66,7 +66,12 @@ public class Process {
     public boolean destConnect(String ip, int portNo) throws IOException {
         InetSocketAddress destination = new InetSocketAddress(ip, portNo);
 
+
         socket.connect(destination, 3);
+        if(socket.isConnected()){
+            instream = new ObjectInputStream(socket.getInputStream());
+            ostream = new ObjectOutputStream(socket.getOutputStream());
+        }
         return socket.isConnected();
     }
 
@@ -144,16 +149,17 @@ public class Process {
     }
 
     public static void main(String[] args) {
-        if(args.length<3||args.length>4){
+        if(args.length<2||args.length>3){
             System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
         }
         int processNo = 0;
         String IP;
         int port;
-        int srcPort = Integer.parseInt(args[1]);
-        if(args.length==4) processNo = Integer.parseInt(args[3]);
+        int srcPort = Integer.parseInt(args[2]);
+        if(args.length==3) processNo = Integer.parseInt(args[2]);
+        while(true)
         try {
-            String[] host = args[2].split(":");
+            String[] host = args[1].split(":");
             if(host.length!=2)throw new Error("Bad host argument");
             else {
                 IP = host[0];
@@ -162,7 +168,12 @@ public class Process {
             Process process = new Process(processNo,port);
             boolean isConnected = false;
             do{
-                isConnected = process.destConnect(IP,port);
+                try {
+                    isConnected = process.destConnect(IP,port);
+                }catch (SocketTimeoutException e){
+                    e.printStackTrace();
+                }
+
             } while (!isConnected);
             if(process.processNumber==0){
                 process.setCurrentEvent(process.action(new SocketEvent()));
@@ -175,9 +186,14 @@ public class Process {
                 process.send();
             }
 
+        } catch (java.net.ConnectException e) {
+            e.printStackTrace();
+        } catch (java.net.SocketException e) {
+            e.printStackTrace();
         } catch (Exception e){
             System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
             e.printStackTrace();
+            System.exit(1);
         }
     }
 }
