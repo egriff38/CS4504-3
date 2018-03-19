@@ -119,11 +119,20 @@ public class Process {
         }
     }
 
+    public char timeRelationLamport(int a, int b) {
+        if(a > b) {
+            return 'n';
+        } else if (a < b) {
+            return 'h';
+        } else {
+            return 'c';
+        }
+    }
 
     public char timeRelationVector(Vector<Integer> aArr, Vector<Integer> bArr) {
-        if((aArr.get(0) > bArr.get(0)) && (aArr.get(1) > bArr.get(1)) && (aArr.get(2) > bArr.get(2))){
+        if((aArr.get(0) >= bArr.get(0)) && (aArr.get(1) >= bArr.get(1)) && (aArr.get(2) >= bArr.get(2))){
             return 'n';
-        } else if((aArr.get(0) < bArr.get(0)) && (aArr.get(1) < bArr.get(1)) && (aArr.get(2) < bArr.get(2))){
+        } else if((aArr.get(0) <= bArr.get(0)) && (aArr.get(1) <= bArr.get(1)) && (aArr.get(2) <= bArr.get(2))){
             return 'h';
         } else {
             return 'c';
