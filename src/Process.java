@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Vector;
 
 public class Process {
@@ -9,7 +10,8 @@ public class Process {
     private Vector<Integer> vectorTime;
     private int scalarTime;
     private SocketEvent currentEvent;
-    final private Socket socket;
+    private Socket sendSocket;
+    private Socket receiveSocket;
     private ObjectInputStream instream;
     private ObjectOutputStream ostream;
 
@@ -18,9 +20,8 @@ public class Process {
         this.processNumber = processNumber;
         vectorTime = new Vector<>(Arrays.asList(0,0,0));
         scalarTime = 0;
-        socket = new Socket();
-        socket.bind(new InetSocketAddress("127.0.0.1", portNo));
-
+        sendSocket = new Socket();
+        receiveSocket = new Socket();
     }
 
     public SocketEvent getCurrentEvent() {
@@ -47,8 +48,8 @@ public class Process {
         return scalarTime;
     }
 
-    public Socket getSocket() {
-        return socket;
+    public Socket getSendSocket() {
+        return sendSocket;
     }
 
     public void updateScalar(int time) {
@@ -67,12 +68,20 @@ public class Process {
         InetSocketAddress destination = new InetSocketAddress(ip, portNo);
 
 
-        socket.connect(destination, 3);
-        if(socket.isConnected()){
-            instream = new ObjectInputStream(socket.getInputStream());
-            ostream = new ObjectOutputStream(socket.getOutputStream());
+
+        while(!sendSocket.isConnected()) {
+            sendSocket.connect(destination, 5000);
         }
-        return socket.isConnected();
+
+        if(sendSocket.isConnected()){
+            instream = new ObjectInputStream(sendSocket.getInputStream());
+            ostream = new ObjectOutputStream(sendSocket.getOutputStream());
+        }
+        return sendSocket.isConnected();
+    }
+
+    public boolean receiveConnection(String IP, int portNo) {
+        return false;
     }
 
     // Serialization
@@ -90,7 +99,7 @@ public class Process {
         }
 
     }
-    public void send() throws Exception{
+    public void send() throws IOException {
         this.serializedSend(currentEvent);
     }
     //Deserialization
@@ -148,52 +157,66 @@ public class Process {
         }
     }
 
+    public void firstProcessMain() {
+        Scanner scanner = new Scanner(System.in);
+    }
+
+    public void otherProcessesMain() {
+
+    }
+
     public static void main(String[] args) {
-        if(args.length<2||args.length>3){
-            System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
-        }
-        int processNo = 0;
-        String IP;
-        int port;
-        int srcPort = Integer.parseInt(args[2]);
-        if(args.length==3) processNo = Integer.parseInt(args[2]);
-        while(true)
         try {
+            if(args.length<2||args.length>3){
+                throw new IllegalArgumentException();
+            }
+
             String[] host = args[1].split(":");
-            if(host.length!=2)throw new Error("Bad host argument");
-            else {
+
+            int srcPort = Integer.parseInt(args[0]);
+            String IP;
+            int port;
+            int processNo = 0; // For if process number is not provided
+
+            if(args.length==3) { // If process number is provided
+                processNo = Integer.parseInt(args[2]);
+            }
+
+            if(host.length!=2) {    // Incorrect Argument Format
+                throw new IllegalArgumentException();
+            } else {
                 IP = host[0];
                 port = Integer.parseInt(host[1]);
             }
-            Process process = new Process(processNo,port);
-            boolean isConnected = false;
-            do{
-                try {
-                    isConnected = process.destConnect(IP,port);
-                }catch (SocketTimeoutException e){
-                    e.printStackTrace();
-                }
 
-            } while (!isConnected);
-            if(process.processNumber==0){
+            Process process = new Process(processNo, srcPort);
+
+            // Deals with getting all three processes connected
+            if(processNo == 0) {
+                process.firstProcessMain();
+            } else {
+                process.otherProcessesMain();
+            }
+
+            if (process.processNumber == 0) {
                 process.setCurrentEvent(process.action(new SocketEvent()));
                 process.send();
             }
+
+            process.destConnect(IP, port);
+
             process.listen();
-            if(processNo == 0){
+            if (processNo == 0) {
                 process.printClock();
-            }else{
+            } else {
                 process.send();
             }
-
-        } catch (java.net.ConnectException e) {
-            e.printStackTrace();
-        } catch (java.net.SocketException e) {
-            e.printStackTrace();
-        } catch (Exception e){
+        } catch (IllegalArgumentException e){
             System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
             e.printStackTrace();
             System.exit(1);
+        } catch (IOException f) {
+            f.printStackTrace();
         }
     }
 }
