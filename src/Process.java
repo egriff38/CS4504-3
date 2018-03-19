@@ -108,25 +108,19 @@ public class Process {
     }
 
     public void printClock() {
-        for (Map.Entry<Integer, Vector<Integer>> entry : currentEvent.getHistory().entrySet()) {
-
+        System.out.println("Pairs\tRelations");
+        for (Map.Entry<Integer, Vector<Integer>> entry1 : currentEvent.getHistory().entrySet()) {
+            for(Map.Entry<Integer, Vector<Integer>> entry2 : currentEvent.getHistory().entrySet()) {
+                if((!entry1.getKey().equals(entry2.getKey()))) {
+                    char x = timeRelationVector(entry1.getValue(), entry2.getValue());
+                    System.out.println(entry1.getValue() + ", " + entry2.getValue() + "\t" + x + "\n");
+                }
+            }
         }
     }
 
-    public char timeRelationLamport(SocketEvent a, SocketEvent b){
-        if(a.getLamport() > b.getLamport()) {
-            return 'n';
-        } else if(a.getLamport() < b.getLamport()) {
-            return 'h';
-        } else {
-            return 'c';
-        }
-    }
 
-    public char timeRelationVector(SocketEvent a, SocketEvent b) {
-        Vector<Integer> aArr = a.getVectorClock();
-        Vector<Integer> bArr = b.getVectorClock();
-
+    public char timeRelationVector(Vector<Integer> aArr, Vector<Integer> bArr) {
         if((aArr.get(0) > bArr.get(0)) && (aArr.get(1) > bArr.get(1)) && (aArr.get(2) > bArr.get(2))){
             return 'n';
         } else if((aArr.get(0) < bArr.get(0)) && (aArr.get(1) < bArr.get(1)) && (aArr.get(2) < bArr.get(2))){
@@ -145,7 +139,7 @@ public class Process {
         int port;
         int srcPort = Integer.parseInt(args[1]);
         if(args.length==4) processNo = Integer.parseInt(args[3]);
-        try{
+        try {
             String[] host = args[2].split(":");
             if(host.length!=2)throw new Error("Bad host argument");
             else {
@@ -153,16 +147,16 @@ public class Process {
                 port = Integer.parseInt(host[1]);
             }
             Process process = new Process(processNo,port);
-            Boolean isConnected = false;
+            boolean isConnected = false;
             do{
                 isConnected = process.destConnect(IP,port);
-            }while (!isConnected);
+            } while (!isConnected);
             if(process.processNumber==0){
                 process.action(new SocketEvent());
             }
             process.listen();
 
-        }catch (Exception e){
+        } catch (Exception e){
             System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
             e.printStackTrace();
         }
