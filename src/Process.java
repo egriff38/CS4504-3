@@ -70,6 +70,26 @@ public class Process {
     }
 
     public static void main(String[] args) {
+        if(args.length<2||args.length>3){
+            System.out.println("Process [IP]:[PORT] [?processNumber]");
+        }
+        int processNo = 0;
+        String IP;
+        int port;
+        if(args.length==3) processNo = Integer.parseInt(args[2]);
+        try{
+            String[] host = args[1].split(":");
+            if(host.length!=2)throw new Error("Bad host argument");
+            else{
+                IP = host[0];
+                port = Integer.parseInt(host[1]);
+            }
+            Process process = new Process(processNo,IP,port);
+        }catch (Exception e){
+            System.out.println("Process [IP]:[PORT] [?processNumber]");
+        }
+
+
 
     }
 }
