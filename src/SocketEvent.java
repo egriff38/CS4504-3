@@ -19,7 +19,18 @@ public class SocketEvent extends java.net.Socket implements java.io.Serializable
         this.history.put(this.eventNo, this.vectorClock);
     }
 
-    // Increments clocks and changes text
+    public int getEventNo() {
+        return eventNo;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
     public SocketEvent update(String text, int lamport, Vector<Integer> vectorClock){
         return new SocketEvent((int)(Math.random()*100)
                 + this.eventNo + 1, text, lamport, vectorClock);

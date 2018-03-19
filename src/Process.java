@@ -73,11 +73,25 @@ public class Process {
     }
 
     //Deserialization
-    public Object deserializeReceive() throws IOException {
-        return instream.read();
+    public Object deserializeReceive() throws IOException, ClassNotFoundException {
+        return instream.readObject();
     }
 
     public SocketEvent action(SocketEvent event) {
+        String str = event.getText();
+
+        if (event.getEventNo() % 2 == 0) {
+            str = str.toUpperCase();
+        } else if (event.getEventNo() % 3 == 0) {
+            String str2 = "";
+            for (int i = str.length(); i > 0; i--) { //Reverses the text
+                str2.concat(Character.toString(str.charAt(i - 1)));
+            }
+            str = str2;
+        } else {
+            str = str.concat("Toast");
+        }
+        event.setText(str);
         return event;
     }
 
