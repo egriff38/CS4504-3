@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 import java.util.Vector;
 
 public class Process {
@@ -7,17 +8,14 @@ public class Process {
     private Vector<Integer> vectorTime;
     private int scalarTime;
     private SocketEvent currentEvent;
-    private Socket socket;
-    private ObjectInputStream instream;
-    private ObjectOutputStream ostream;
+    final private Socket socket;
+    final private ObjectInputStream instream;
+    final private ObjectOutputStream ostream;
 
-    public Process(int processNumber, String address, int portNo) throws IOException {
+    public Process(int processNumber, int portNo) throws IOException {
         currentEvent = null;
         this.processNumber = processNumber;
-        vectorTime = new Vector<>(3);
-        vectorTime.set(0, 0);
-        vectorTime.set(1, 0);
-        vectorTime.set(2,0);
+        vectorTime = new Vector<>(Arrays.asList(0,0,0));
         scalarTime = 0;
         socket = new Socket("localhost", portNo);
         instream = new ObjectInputStream(socket.getInputStream());
@@ -30,6 +28,9 @@ public class Process {
 
     public void setCurrentEvent(SocketEvent currentEvent) {
         this.currentEvent = currentEvent;
+        updateVector(currentEvent.getVectorClock());
+        updateScalar(currentEvent.getScalarClock());
+
     }
 
     public int getProcessNumber() {
@@ -49,7 +50,7 @@ public class Process {
     }
 
     public void updateScalar(int time) {
-        scalarTime++;
+        scalarTime = Math.max(scalarTime,time)+1;
     }
 
     public void updateVector(Vector<Integer> time) {
@@ -72,6 +73,16 @@ public class Process {
         ostream.writeObject(o);
     }
 
+    private void listen() {
+        try {
+            setCurrentEvent((SocketEvent)deserializeReceive());
+            action(this.currentEvent);
+        } catch (Exception e){
+            e.printStackTrace();
+            System.out.println("toast");
+        }
+
+    }
     //Deserialization
     public Object deserializeReceive() throws IOException, ClassNotFoundException {
         return instream.readObject();
@@ -107,13 +118,25 @@ public class Process {
         try{
             String[] host = args[2].split(":");
             if(host.length!=2)throw new Error("Bad host argument");
-            else{
+            else {
                 IP = host[0];
                 port = Integer.parseInt(host[1]);
             }
-            Process process = new Process(processNo,IP,port);
+            Process process = new Process(processNo,port);
+            Boolean isConnected = false;
+            do{
+                isConnected = process.destConnect(IP,port);
+            }while (!isConnected);
+            if(process.processNumber==0){
+                process.action(new SocketEvent());
+            }
+            process.listen();
+
         }catch (Exception e){
             System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
+            e.printStackTrace();
         }
     }
+
+
 }

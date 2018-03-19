@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -9,7 +10,9 @@ public class SocketEvent extends java.net.Socket implements java.io.Serializable
     private int lamport;
     private Vector<Integer> vectorClock;
     private Map<Integer, Vector<Integer>> history; // If the process #s are random, how will we retrieve these values?
-
+    public SocketEvent(){
+        this(1,"I love you",0,new Vector<>(Arrays.asList(0,0,0)));
+    }
     public SocketEvent(int eventNo,String text, int lamport, Vector<Integer> vectorClock){
         this.eventNo = eventNo;
         this.text = text;
@@ -25,6 +28,13 @@ public class SocketEvent extends java.net.Socket implements java.io.Serializable
 
     public String getText() {
         return text;
+    }
+
+    public Vector<Integer> getVectorClock(){
+        return this.vectorClock;
+    }
+    public int getScalarClock(){
+        return this.lamport;
     }
 
     public void setText(String text) {
