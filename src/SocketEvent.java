@@ -19,7 +19,6 @@ public class SocketEvent extends java.net.Socket implements java.io.Serializable
         this.lamport = lamport;
         this.vectorClock = vectorClock;
         this.history = new HashMap<>();
-        this.history.put(this.eventNo, this.vectorClock);
     }
 
     public int getEventNo() {
@@ -51,7 +50,7 @@ public class SocketEvent extends java.net.Socket implements java.io.Serializable
                 + this.eventNo + 1, text, lamport, vectorClock);
     }
 
-    private void addHistory(SocketEvent e) {
+    public void addHistory(SocketEvent e) {
         history.put(e.eventNo, e.vectorClock);
     }
 

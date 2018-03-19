@@ -31,6 +31,7 @@ public class Process {
         this.currentEvent = currentEvent;
         updateVector(currentEvent.getVectorClock());
         updateScalar(currentEvent.getLamport());
+        this.currentEvent.addHistory(currentEvent);
 
     }
 
@@ -77,12 +78,15 @@ public class Process {
     private void listen() {
         try {
             setCurrentEvent((SocketEvent)deserializeReceive());
-            action(this.currentEvent);
+            setCurrentEvent(action(this.currentEvent));
         } catch (Exception e){
             e.printStackTrace();
             System.out.println("toast");
         }
 
+    }
+    public void send() throws Exception{
+        this.serializedSend(currentEvent);
     }
     //Deserialization
     public Object deserializeReceive() throws IOException, ClassNotFoundException {
@@ -161,9 +165,15 @@ public class Process {
                 isConnected = process.destConnect(IP,port);
             } while (!isConnected);
             if(process.processNumber==0){
-                process.action(new SocketEvent());
+                process.setCurrentEvent(process.action(new SocketEvent()));
+                process.send();
             }
             process.listen();
+            if(processNo == 0){
+                process.printClock();
+            }else{
+                process.send();
+            }
 
         } catch (Exception e){
             System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
