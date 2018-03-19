@@ -1,8 +1,5 @@
 import java.io.*;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.SocketException;
+import java.net.*;
 import java.util.Vector;
 
 public class Process {
@@ -22,7 +19,9 @@ public class Process {
         vectorTime.set(1, 0);
         vectorTime.set(2,0);
         scalarTime = 0;
-        socket = new Socket(address, portNo);
+        socket = new Socket("localhost", portNo);
+        instream = new ObjectInputStream(socket.getInputStream());
+        ostream = new ObjectOutputStream(socket.getOutputStream());
     }
 
     public SocketEvent getCurrentEvent() {
@@ -61,9 +60,22 @@ public class Process {
     }
 
     // Socket Connection
+    public boolean destConnect(String ip, int portNo) throws IOException {
+        InetSocketAddress destination = new InetSocketAddress(ip, portNo);
 
+        socket.connect(destination, 3);
+        return socket.isConnected();
+    }
 
+    // Serialization
+    public void serializedSend(Object o) throws IOException {
+        ostream.writeObject(o);
+    }
 
+    //Deserialization
+    public Object deserializeReceive() throws IOException {
+        return instream.read();
+    }
 
     public SocketEvent action(SocketEvent event) {
         return event;
@@ -89,8 +101,5 @@ public class Process {
         }catch (Exception e){
             System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
         }
-
-
-
     }
 }

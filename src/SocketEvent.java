@@ -25,20 +25,6 @@ public class SocketEvent extends java.net.Socket implements java.io.Serializable
                 + this.eventNo + 1, text, lamport, vectorClock);
     }
 
-    // Serializes
-    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        out.writeObject(this);
-    }
-
-    // Deserializes
-    private Object readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        return in.readObject(); // This should be a SocketEvent object
-    }
-
-    private void readObjectNoData() throws ObjectStreamException {
-        System.out.println("No data to process");
-    }
-
     private void addHistory(SocketEvent e) {
         history.put(e.eventNo, e.vectorClock);
     }
