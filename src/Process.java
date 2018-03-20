@@ -10,8 +10,8 @@ public class Process {
     private Vector<Integer> vectorTime;
     private int scalarTime;
     private SocketEvent currentEvent;
-    private Socket sendSocket;
-    private Socket receiveSocket;
+    private Socket clientSocket;
+    private Socket serverSocket;
     private ObjectInputStream instream;
     private ObjectOutputStream ostream;
 
@@ -20,8 +20,8 @@ public class Process {
         this.processNumber = processNumber;
         vectorTime = new Vector<>(Arrays.asList(0,0,0));
         scalarTime = 0;
-        sendSocket = new Socket();
-        receiveSocket = new Socket();
+        clientSocket = new Socket();
+        serverSocket = new Socket();
     }
 
     public SocketEvent getCurrentEvent() {
@@ -48,8 +48,8 @@ public class Process {
         return scalarTime;
     }
 
-    public Socket getSendSocket() {
-        return sendSocket;
+    public Socket getClientSocket() {
+        return clientSocket;
     }
 
     public void updateScalar(int time) {
@@ -64,23 +64,22 @@ public class Process {
     }
 
     // Socket Connection
-    public boolean destConnect(String ip, int portNo) throws IOException {
+    public boolean serverConnect(String ip, int portNo) throws IOException {
         InetSocketAddress destination = new InetSocketAddress(ip, portNo);
 
-
-
-        while(!sendSocket.isConnected()) {
-            sendSocket.connect(destination, 5000);
+        while(!clientSocket.isConnected()) {
+            clientSocket.connect(destination, 5000);
         }
 
-        if(sendSocket.isConnected()){
-            instream = new ObjectInputStream(sendSocket.getInputStream());
-            ostream = new ObjectOutputStream(sendSocket.getOutputStream());
+        if(clientSocket.isConnected()){
+            instream = new ObjectInputStream(clientSocket.getInputStream());
+            ostream = new ObjectOutputStream(clientSocket.getOutputStream());
         }
-        return sendSocket.isConnected();
+        return clientSocket.isConnected();
     }
 
-    public boolean receiveConnection(String IP, int portNo) {
+    public boolean clientReceive(String IP, int portNo) {
+        InetSocketAddress server = new InetSocketAddress(IP, portNo);
         return false;
     }
 
@@ -89,7 +88,7 @@ public class Process {
         ostream.writeObject(o);
     }
 
-    private void listen() {
+    public void listen() {
         try {
             setCurrentEvent((SocketEvent)deserializeReceive());
             setCurrentEvent(action(this.currentEvent));
@@ -157,66 +156,28 @@ public class Process {
         }
     }
 
-    public void firstProcessMain() {
+    public void firstProcessMain(String ip, int portNo) throws IOException {
         Scanner scanner = new Scanner(System.in);
+        System.out.println("Connect? Enter y");
+        char n = scanner.next().charAt(0);
+        if(n == 'y') {
+            while(!clientSocket.isConnected()) {
+                clientSocket.connect(new InetSocketAddress(InetAddress.getByName(ip), portNo));
+            }
+        } else {
+            System.out.println("Cancelled");
+            System.exit(5);
+        }
     }
 
-    public void otherProcessesMain() {
-
-    }
-
-    public static void main(String[] args) {
-        try {
-            if(args.length<2||args.length>3){
-                throw new IllegalArgumentException();
+    public void otherProcessesMain(String ip, int portNo) throws IOException {
+        serverSocket.bind(new InetSocketAddress(InetAddress.getByName(ip), portNo));
+        while(!serverSocket.isConnected()) {
+            if(serverSocket.isConnected()) {
+                if (!clientSocket.isConnected()) {
+                    firstProcessMain(ip, portNo);
+                }
             }
-
-            String[] host = args[1].split(":");
-
-            int srcPort = Integer.parseInt(args[0]);
-            String IP;
-            int port;
-            int processNo = 0; // For if process number is not provided
-
-            if(args.length==3) { // If process number is provided
-                processNo = Integer.parseInt(args[2]);
-            }
-
-            if(host.length!=2) {    // Incorrect Argument Format
-                throw new IllegalArgumentException();
-            } else {
-                IP = host[0];
-                port = Integer.parseInt(host[1]);
-            }
-
-            Process process = new Process(processNo, srcPort);
-
-            // Deals with getting all three processes connected
-            if(processNo == 0) {
-                process.firstProcessMain();
-            } else {
-                process.otherProcessesMain();
-            }
-
-            if (process.processNumber == 0) {
-                process.setCurrentEvent(process.action(new SocketEvent()));
-                process.send();
-            }
-
-            process.destConnect(IP, port);
-
-            process.listen();
-            if (processNo == 0) {
-                process.printClock();
-            } else {
-                process.send();
-            }
-        } catch (IllegalArgumentException e){
-            System.out.println("Process [SRC_PORT] [DEST_IP]:[DEST_PORT] [?processNumber]");
-            e.printStackTrace();
-            System.exit(1);
-        } catch (IOException f) {
-            f.printStackTrace();
         }
     }
 }
