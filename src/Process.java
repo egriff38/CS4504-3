@@ -10,8 +10,9 @@ public class Process {
     private Vector<Integer> vectorTime;
     private int scalarTime;
     private SocketEvent currentEvent;
-    private Socket clientSocket;
-    private Socket serverSocket;
+    private Socket nextSocket;
+    private Socket previousSocket;
+    private ServerSocket welcomeSocket;
     private ObjectInputStream instream;
     private ObjectOutputStream ostream;
 
@@ -20,8 +21,7 @@ public class Process {
         this.processNumber = processNumber;
         vectorTime = new Vector<>(Arrays.asList(0,0,0));
         scalarTime = 0;
-        clientSocket = new Socket();
-        serverSocket = new Socket();
+        nextSocket = new Socket();
     }
 
     public SocketEvent getCurrentEvent() {
@@ -48,8 +48,8 @@ public class Process {
         return scalarTime;
     }
 
-    public Socket getClientSocket() {
-        return clientSocket;
+    public Socket getNextSocket() {
+        return nextSocket;
     }
 
     public void updateScalar(int time) {
@@ -67,15 +67,15 @@ public class Process {
     public boolean serverConnect(String ip, int portNo) throws IOException {
         InetSocketAddress destination = new InetSocketAddress(ip, portNo);
 
-        while(!clientSocket.isConnected()) {
-            clientSocket.connect(destination, 5000);
+        while(!nextSocket.isConnected()) {
+            nextSocket.connect(destination, 5000);
         }
 
-        if(clientSocket.isConnected()){
-            instream = new ObjectInputStream(clientSocket.getInputStream());
-            ostream = new ObjectOutputStream(clientSocket.getOutputStream());
+        if(nextSocket.isConnected()){
+            instream = new ObjectInputStream(nextSocket.getInputStream());
+            ostream = new ObjectOutputStream(nextSocket.getOutputStream());
         }
-        return clientSocket.isConnected();
+        return nextSocket.isConnected();
     }
 
     public boolean clientReceive(String IP, int portNo) {
@@ -161,9 +161,7 @@ public class Process {
         System.out.println("Connect? Enter y");
         char n = scanner.next().charAt(0);
         if(n == 'y') {
-            while(!clientSocket.isConnected()) {
-                clientSocket.connect(new InetSocketAddress(InetAddress.getByName(ip), portNo));
-            }
+            nextSocket.connect(new InetSocketAddress(InetAddress.getByName(ip), portNo));
             System.out.println("Connected to neighbor process");
         } else {
             System.out.println("Cancelled");
@@ -172,14 +170,9 @@ public class Process {
     }
 
     public void otherProcessesMain(String ip, int srcPort, int destPort) throws IOException {
-        serverSocket.bind(new InetSocketAddress(InetAddress.getLocalHost(), srcPort));
+        welcomeSocket = new ServerSocket(srcPort);
         System.out.println("Bound successfully");
-        while(!serverSocket.isConnected()) {
-            if(serverSocket.isConnected()) {
-                if (!clientSocket.isConnected()) {
-                    firstProcessMain(ip, destPort);
-                }
-            }
-        }
+        previousSocket = welcomeSocket.accept();
+        firstProcessMain(ip, destPort);
     }
 }
