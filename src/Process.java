@@ -63,26 +63,6 @@ public class Process {
         vectorTime.set(processNumber,vectorTime.get(processNumber)+1);
     }
 
-    // Socket Connection
-    public boolean serverConnect(String ip, int portNo) throws IOException {
-        InetSocketAddress destination = new InetSocketAddress(ip, portNo);
-
-        while(!nextSocket.isConnected()) {
-            nextSocket.connect(destination, 5000);
-        }
-
-        if(nextSocket.isConnected()){
-            instream = new ObjectInputStream(nextSocket.getInputStream());
-            ostream = new ObjectOutputStream(nextSocket.getOutputStream());
-        }
-        return nextSocket.isConnected();
-    }
-
-    public boolean clientReceive(String IP, int portNo) {
-        InetSocketAddress server = new InetSocketAddress(IP, portNo);
-        return false;
-    }
-
     // Serialization
     public void serializedSend(Object o) throws IOException {
         ostream.writeObject(o);
@@ -90,16 +70,20 @@ public class Process {
 
     public void listen() {
         try {
-            setCurrentEvent((SocketEvent)deserializeReceive());
-            setCurrentEvent(action(this.currentEvent));
+            SocketEvent recievedEvent = (SocketEvent)deserializeReceive();
+            setCurrentEvent(recievedEvent);
+            System.out.println("received event: "+currentEvent.getEventNo());
+            SocketEvent sentEvent = recievedEvent.update(action(recievedEvent).getText(),this.scalarTime,this.vectorTime);
+            System.out.println(recievedEvent.getText()+" --> "+sentEvent.getText());
+            setCurrentEvent(sentEvent);
         } catch (Exception e){
             e.printStackTrace();
-            System.out.println("toast");
         }
 
     }
     public void send() throws IOException {
         this.serializedSend(currentEvent);
+        System.out.println("Sent event: "+currentEvent.getEventNo());
     }
     //Deserialization
     public Object deserializeReceive() throws IOException, ClassNotFoundException {
@@ -156,23 +140,28 @@ public class Process {
         }
     }
 
-    public void firstProcessMain(String ip, int portNo) throws IOException {
+    public void client(String ip, int portNo) throws IOException {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Connect? Enter y");
-        char n = scanner.next().charAt(0);
+        char n = 'y';
+        if(processNumber==0) {
+            System.out.println("Connect? Enter y");
+            n = scanner.next().charAt(0);
+        }
         if(n == 'y') {
             nextSocket.connect(new InetSocketAddress(InetAddress.getByName(ip), portNo));
             System.out.println("Connected to neighbor process");
+            ostream = new ObjectOutputStream(nextSocket.getOutputStream());
+
         } else {
             System.out.println("Cancelled");
             System.exit(5);
         }
     }
 
-    public void otherProcessesMain(String ip, int srcPort, int destPort) throws IOException {
+    public void server(String ip, int srcPort, int destPort) throws IOException {
         welcomeSocket = new ServerSocket(srcPort);
         System.out.println("Bound successfully");
         previousSocket = welcomeSocket.accept();
-        firstProcessMain(ip, destPort);
+        instream = new ObjectInputStream(previousSocket.getInputStream());
     }
 }

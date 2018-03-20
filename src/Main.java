@@ -29,17 +29,17 @@ public class Main {
 
             // Deals with getting all three processes connected
             if (processNo == 0) {
-                process.firstProcessMain(IP, destPort);
+                process.client(IP, destPort);
+                process.server(IP, srcPort ,destPort);
             } else {
-                process.otherProcessesMain(IP, srcPort ,destPort);
+                process.server(IP, srcPort ,destPort);
+                process.client(IP, destPort);
             }
 
             if (process.getProcessNumber() == 0) {
                 process.setCurrentEvent(process.action(new SocketEvent()));
                 process.send();
             }
-
-            process.serverConnect(IP, destPort);
 
             process.listen();
             if (processNo == 0) {

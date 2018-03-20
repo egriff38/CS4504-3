@@ -46,10 +46,14 @@ public class SocketEvent extends java.net.Socket implements java.io.Serializable
     }
 
     public SocketEvent update(String text, int lamport, Vector<Integer> vectorClock){
-        return new SocketEvent((int)(Math.random()*100)
+        SocketEvent sentSocket = new SocketEvent((int)(Math.random()*100)
                 + this.eventNo + 1, text, lamport, vectorClock);
+        sentSocket.setHistory(this.history);
+        return sentSocket;
     }
-
+    public void setHistory(Map<Integer, Vector<Integer>> history){
+        this.history = history;
+    }
     public void addHistory(SocketEvent e) {
         history.put(e.eventNo, e.vectorClock);
     }
