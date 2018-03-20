@@ -15,7 +15,7 @@ public class Process {
     private ObjectInputStream instream;
     private ObjectOutputStream ostream;
 
-    public Process(int processNumber, int portNo) throws IOException {
+    public Process(int processNumber) throws IOException {
         currentEvent = null;
         this.processNumber = processNumber;
         vectorTime = new Vector<>(Arrays.asList(0,0,0));
@@ -164,18 +164,20 @@ public class Process {
             while(!clientSocket.isConnected()) {
                 clientSocket.connect(new InetSocketAddress(InetAddress.getByName(ip), portNo));
             }
+            System.out.println("Connected to neighbor process");
         } else {
             System.out.println("Cancelled");
             System.exit(5);
         }
     }
 
-    public void otherProcessesMain(String ip, int portNo) throws IOException {
-        serverSocket.bind(new InetSocketAddress(InetAddress.getByName(ip), portNo));
+    public void otherProcessesMain(String ip, int srcPort, int destPort) throws IOException {
+        serverSocket.bind(new InetSocketAddress(InetAddress.getLocalHost(), srcPort));
+        System.out.println("Bound successfully");
         while(!serverSocket.isConnected()) {
             if(serverSocket.isConnected()) {
                 if (!clientSocket.isConnected()) {
-                    firstProcessMain(ip, portNo);
+                    firstProcessMain(ip, destPort);
                 }
             }
         }

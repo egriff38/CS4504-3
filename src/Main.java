@@ -11,7 +11,7 @@ public class Main {
 
             int srcPort = Integer.parseInt(args[0]);
             String IP;
-            int port;
+            int destPort;
             int processNo = 0; // For if process number is not provided
 
             if (args.length == 3) { // If process number is provided
@@ -22,16 +22,16 @@ public class Main {
                 throw new IllegalArgumentException();
             } else {
                 IP = host[0];
-                port = Integer.parseInt(host[1]);
+                destPort = Integer.parseInt(host[1]);
             }
 
-            Process process = new Process(processNo, srcPort);
+            Process process = new Process(processNo);
 
             // Deals with getting all three processes connected
             if (processNo == 0) {
-                process.firstProcessMain(IP, port);
+                process.firstProcessMain(IP, destPort);
             } else {
-                process.otherProcessesMain(IP, port);
+                process.otherProcessesMain(IP, srcPort ,destPort);
             }
 
             if (process.getProcessNumber() == 0) {
@@ -39,7 +39,7 @@ public class Main {
                 process.send();
             }
 
-            process.serverConnect(IP, port);
+            process.serverConnect(IP, destPort);
 
             process.listen();
             if (processNo == 0) {
