@@ -74,7 +74,6 @@ public class Process {
             setCurrentEvent(recievedEvent);
             System.out.println("received event: "+currentEvent.getEventNo());
             SocketEvent sentEvent = recievedEvent.update(action(recievedEvent).getText(),this.scalarTime,this.vectorTime);
-            System.out.println(recievedEvent.getText()+" --> "+sentEvent.getText());
             setCurrentEvent(sentEvent);
         } catch (Exception e){
             e.printStackTrace();
@@ -109,7 +108,7 @@ public class Process {
     }
 
     public void printClock() {
-        System.out.println("Pairs\tRelations");
+        System.out.println("Pairs\t\t\t\t\tRelations");
         for (Map.Entry<Integer, Vector<Integer>> entry1 : currentEvent.getHistory().entrySet()) {
             for(Map.Entry<Integer, Vector<Integer>> entry2 : currentEvent.getHistory().entrySet()) {
                 if((!entry1.getKey().equals(entry2.getKey()))) {
